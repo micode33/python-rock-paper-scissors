@@ -1,33 +1,49 @@
 import random
-import signal
 
 from lib.player import Player
 from lib.result import result
-from lib.colors import *
+from lib.colors import cyan, reset
 
-# Capture the signal interupt and close gracefully
-def handler(signum, frame):
-  print("\nClosing...")
+from utils.clear import clear
+from utils.announce import announce_choices, announce_hands
+from utils.watch_signal import watch_signal
+
+from display.display_beginning import display_beginning
+from display.display_ending import display_ending
+
+watch_signal()
+
+display_beginning()
+try:
+  user_name = input("To begin, please enter your name: ")
+except EOFError:
+  print("\n")
+  display_ending()
   exit(1)
 
-signal.signal(signal.SIGINT, handler)
-
-# Get the user's name
-user_name = input("Enter your name: ")
-
 while True:
+  try:
 
-  possible_choices = [ "ROCK", "PAPER", "SCISSORS" ]
+    announce_choices(user_name)
+    
+    user_choice = input(f"(Type r, p, or s): ")
 
-  user_choice = input("Enter a choice (rock, paper, scissors)[r, p, s]: ")
+    player1 = Player(user_name, user_choice)
+    player2 = Player("Computer", random.choice([ "ROCK", "PAPER", "SCISSORS" ]))
+    
+    announce_hands(player1, player2)
 
-  player1 = Player(user_name, user_choice)
-  player2 = Player("computer", random.choice(possible_choices))
+    result(player1.hand, player2.hand)
+
+    play_again = input("\nPlay again? (y/n): ")
+
+    if play_again.lower() != "y":
+      break
   
-  print(f"{player1.name} chose {cyan + player1.hand.upper() + reset}, {player2.name} chose {cyan + player2.hand.upper() + reset}.\n")
-
-  result(player1.hand, player2.hand)
-
-  play_again = input("Play again? (y/n): ")
-  if play_again.lower() != "y":
+  except EOFError:
+    print("\n")
     break
+
+display_ending()
+
+  
